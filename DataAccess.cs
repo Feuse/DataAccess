@@ -15,7 +15,7 @@ namespace DataAccess
     {
         //GET FROM CONFIGURATION FILE
 
-        const string URI = "mongodb+srv://roman:1212@cluster0.voo5h.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+        const string URI = "mongodb+srv://<username>:<pwd>@cluster0.voo5h.mongodb.net/autolover?retryWrites=true&w=majority";
         const string NAME = "AUTOLOVER";
 
         private IMongoDatabase database;
