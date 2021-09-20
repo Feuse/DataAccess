@@ -40,8 +40,11 @@ namespace DataAccess
 
             var result = await _userCredentials.UpdateOneAsync(filter,
                   Builders<UserCredentials>.Update.AddToSet(u => u.Services, userServiceCredentials));
-            await UpdateServiceSession(data);
-            
+            if (result.IsAcknowledged)
+            {
+                await UpdateServiceSession(data);
+            }
+
             return result;
         }
 
@@ -60,7 +63,7 @@ namespace DataAccess
             }
         }
 
-        public async Task UpdateServiceSession(Data data)
+        public async Task<ServiceSessions> UpdateServiceSession(Data data)
         {
             var today = DateTime.Today;
             ServiceSessions session = new ServiceSessions()
@@ -74,13 +77,14 @@ namespace DataAccess
             };
 
             await _serviceSessions.InsertOneAsync(session);
+            return session;
 
         }
 
         public async Task<UserServiceCredentials> GetUserServiceByServiceNameAndId(Data data)
         {
             var filter = Builders<UserCredentials>.Filter.Eq("_id", new ObjectId(data.Id));
-            
+
             var collection = await _userCredentials.Find(filter).SingleOrDefaultAsync();
 
             if (collection is not null)
@@ -94,10 +98,10 @@ namespace DataAccess
             }
         }
 
-        public async Task<List<UserServiceCredentials>> GetAllUserServicesById(string id)
+        public async Task<List<UserServiceCredentials>> GetAllUserServicesById(Data data)
         {
-            var filter = Builders<UserCredentials>.Filter.Eq("_id", new ObjectId(id));
-           // var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
+            var filter = Builders<UserCredentials>.Filter.Eq("_id", new ObjectId(data.Id));
+            // var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
             var collection = await _userCredentials.Find(filter).SingleOrDefaultAsync();
 
             if (collection is not null)
@@ -114,7 +118,7 @@ namespace DataAccess
 
         public async Task<DeleteResult> RemoveServiceFromUser(Data data)
         {
-           // var userCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
+            // var userCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
             var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Id == data.Id);
             var update = Builders<UserCredentials>.Update.PullFilter(ym => ym.Services, Builders<UserServiceCredentials>.Filter.Where(nm => nm.Service == data.Service));
             await _userCredentials.UpdateOneAsync(filter, update);
@@ -128,18 +132,37 @@ namespace DataAccess
 
         public async Task<UserCredentials> AuthenticateUser(Data data)
         {
-          //  var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
-            var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.UserName & ym.Password == data.Password);
+            try
+            {
+                var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.UserName & ym.Password == data.Password);
 
-            var user = await _userCredentials.Find(filter).SingleOrDefaultAsync();
-            return user;
+                var user = await _userCredentials.Find(filter).SingleOrDefaultAsync();
+                return user;
+
+            }
+            catch (Exception)
+            {
+
+                return null;
+            }
+            //  var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
 
         }
         public async Task<UserCredentials> CheckIfUsernameExists(Data data)
         {
 
-        //    var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
+            //    var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
             var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.UserName);
+
+            var user = await _userCredentials.Find(filter).SingleOrDefaultAsync();
+            return user;
+
+        }
+        public async Task<UserCredentials> GetUserById(Data data)
+        {
+
+            //    var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
+            var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Id == data.Id);
 
             var user = await _userCredentials.Find(filter).SingleOrDefaultAsync();
             return user;
@@ -147,7 +170,7 @@ namespace DataAccess
         }
         public async Task<UserCredentials> RegisterUser(Data data)
         {
-           // var collection = _database.GetCollection<UserCredentials>("UserCredentials");
+            // var collection = _database.GetCollection<UserCredentials>("UserCredentials");
 
             UserCredentials user = new UserCredentials()
             {
@@ -158,7 +181,21 @@ namespace DataAccess
 
             await _userCredentials.InsertOneAsync(user);
             return user;
-
         }
+        public async Task<UserCredentials> UpdateUser(Data data)
+        {
+            UserCredentials user = new UserCredentials()
+            {
+                Id = data.Id,
+                Username = data.UserName,
+                Password = data.Password,
+                SeenTutorial = data.SeenTutorial,
+                Services = data.Services
+            };
+            await _userCredentials.ReplaceOneAsync(doc => doc.Id == user.Id, user);
+
+            return user;
+        }
+
     }
 }
