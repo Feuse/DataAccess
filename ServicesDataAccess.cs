@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using RabbitMQScheduler.Models;
 using ServicesInterfaces;
 using ServicesModels;
 using System;
@@ -73,10 +72,15 @@ namespace DataAccess
                 SessionId = data.SessionId,
                 HiddenUrl = data.HiddenUrl,
                 XPing = data.XPing,
-                ExpireAt = today.AddDays(1)
+                ExpireAt = today
             };
 
             await _serviceSessions.InsertOneAsync(session);
+
+            var indexKeysDefinition = Builders<ServiceSessions>.IndexKeys.Ascending("expireAt");
+            var indexOptions = new CreateIndexOptions { ExpireAfter = new TimeSpan(0, 2, 0) };
+            var indexModel = new CreateIndexModel<ServiceSessions>(indexKeysDefinition, indexOptions);
+            _serviceSessions.Indexes.CreateOne(indexModel);
             return session;
 
         }

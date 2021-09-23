@@ -66,6 +66,10 @@ namespace DataAccess
             if (services is null)
             {
                 services = await _servicesDataAccess.GetAllUserServicesById(data);
+                if (services.Count ==0)
+                {
+                    return services;
+                }
                 await _cacheDataAccess.SetUserServices(data, services);
             }
             return services;
