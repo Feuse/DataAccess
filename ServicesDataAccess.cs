@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using ServicesInterfaces;
+using ServicesInterfaces.Global;
 using ServicesModels;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace DataAccess
     {
         private readonly IMongoCollection<UserCredentials> _userCredentials;
         private readonly IMongoCollection<ServiceSessions> _serviceSessions;
-        public ServicesDataAccess(IAutoLoverDatabaseSettings settings)
+        public ServicesDataAccess(IAppSettings settings)
         {
             var client = new MongoClient(settings.ConnectionString);
             var database = client.GetDatabase(settings.DatabaseName);
@@ -31,7 +32,7 @@ namespace DataAccess
             UserServiceCredentials userServiceCredentials = new UserServiceCredentials()
             {
                 UserServiceId = data.UserServiceId,
-                Username = data.UserName,
+                Username = data.Username,
                 Password = data.Password,
                 Service = data.Service,
                 Hash = ""
@@ -138,7 +139,7 @@ namespace DataAccess
         {
             try
             {
-                var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.UserName & ym.Password == data.Password);
+                var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.Username & ym.Password == data.Password);
 
                 var user = await _userCredentials.Find(filter).SingleOrDefaultAsync();
                 return user;
@@ -156,7 +157,7 @@ namespace DataAccess
         {
 
             //    var userServiceCredentialsCollection = _database.GetCollection<UserCredentials>("UserCredentials");
-            var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.UserName);
+            var filter = Builders<UserCredentials>.Filter.Where(ym => ym.Username == data.Username);
 
             var user = await _userCredentials.Find(filter).SingleOrDefaultAsync();
             return user;
@@ -178,7 +179,7 @@ namespace DataAccess
 
             UserCredentials user = new UserCredentials()
             {
-                Username = data.UserName,
+                Username = data.Username,
                 Password = data.Password,
                 Services = new List<UserServiceCredentials>()
             };
@@ -191,7 +192,7 @@ namespace DataAccess
             UserCredentials user = new UserCredentials()
             {
                 Id = data.Id,
-                Username = data.UserName,
+                Username = data.Username,
                 Password = data.Password,
                 SeenTutorial = data.SeenTutorial,
                 Services = data.Services

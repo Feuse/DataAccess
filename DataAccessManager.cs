@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using AutoMapper;
+using MongoDB.Driver;
 using ServicesInterfaces;
 using ServicesModels;
 using System;
@@ -11,12 +12,14 @@ namespace DataAccess
 {
     public class DataAccessManager : IDataAccessManager
     {
+        private readonly IMapper _mapper;
         private readonly IDataAccess _servicesDataAccess;
         private readonly ICacheDataAccess _cacheDataAccess;
-        public DataAccessManager(IDataAccess servicesDataAccess, ICacheDataAccess cacheDataAccess)
+        public DataAccessManager(IDataAccess servicesDataAccess, ICacheDataAccess cacheDataAccess, IMapper mapper)
         {
             _servicesDataAccess = servicesDataAccess;
             _cacheDataAccess = cacheDataAccess;
+            _mapper = mapper;
         }
         public async Task<UserCredentials> GetUserById(Data data)
         {
@@ -131,10 +134,8 @@ namespace DataAccess
         public async Task UpdateUser(Data data)
         {
             var user = await GetUserById(data);
-          
-            data.UserName = user.Username;
-            data.Password = user.Password;
-            data.Services = user.Services;
+
+            data = _mapper.Map(user, data);
 
             await _cacheDataAccess.UpdateUserById(data);
             await _servicesDataAccess.UpdateUser(data);

@@ -48,7 +48,7 @@ namespace DataAccess
                 Id = data.Id,
                 Password = data.Password,
                 SeenTutorial = data.SeenTutorial,
-                Username = data.UserName,
+                Username = data.Username,
                 Services = data.Services
                
             };
