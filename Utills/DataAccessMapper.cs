@@ -12,7 +12,9 @@ namespace DataAccess.Utills
     {
         public DataAccessMapper()
         {
-            CreateMap<UserCredentials, Data>();
+            CreateMap<UserCredentials, Data>().ForMember(x => x.About, opt => opt.Ignore());
+            CreateMap<UserServiceCredentials, Data>();
+            CreateMap<Data, UserCredentials>();
         }
     }
 }
